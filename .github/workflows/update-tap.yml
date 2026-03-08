@@ -1,0 +1,62 @@
+name: Update Homebrew Tap
+
+on:
+  repository_dispatch:
+    types: [release-published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., 1.0.9)'
+        required: true
+      mac_sha256:
+        description: 'SHA256 of PolyPilot.zip (Mac Catalyst)'
+        required: true
+
+jobs:
+  update-cask:
+    name: Update Cask
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine version and SHA
+        id: release
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version || github.event.client_payload.version }}
+          INPUT_SHA256: ${{ github.event.inputs.mac_sha256 || github.event.client_payload.mac_sha256 }}
+        run: |
+          VERSION="${INPUT_VERSION}"
+          SHA256="${INPUT_SHA256}"
+
+          if [ -z "$SHA256" ] && [ -n "$VERSION" ]; then
+            echo "Downloading to compute SHA256..."
+            SHA256=$(curl -sL "https://github.com/PureWeen/PolyPilot/releases/download/v${VERSION}/PolyPilot.zip" | shasum -a 256 | cut -d' ' -f1)
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION, SHA256: $SHA256"
+
+      - name: Update cask
+        run: |
+          VERSION="${{ steps.release.outputs.version }}"
+          SHA256="${{ steps.release.outputs.sha256 }}"
+
+          sed -i "s/version \".*\"/version \"${VERSION}\"/" Casks/polypilot.rb
+          sed -i "s/sha256 \".*\"/sha256 \"${SHA256}\"/" Casks/polypilot.rb
+
+          echo "Updated Casks/polypilot.rb to v${VERSION}"
+          cat Casks/polypilot.rb
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/polypilot.rb Formula/polypilot-console.rb
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Update PolyPilot to v${{ steps.release.outputs.version }}"
+          git push
