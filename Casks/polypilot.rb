@@ -9,19 +9,11 @@ cask "polypilot" do
 
   # Requires macOS 14+ (Sonoma) for Mac Catalyst support
   depends_on macos: ">= :sonoma"
+  depends_on cask: "copilot-cli"
 
   app "PolyPilot.app"
 
   zap trash: [
     "~/.polypilot",
   ]
-
-  caveats <<~EOS
-    PolyPilot requires the GitHub Copilot CLI to be installed.
-    Install it with:
-      npm install -g @anthropic-ai/copilot
-
-    On first launch, macOS may show a security warning.
-    Go to System Settings → Privacy & Security to allow it.
-  EOS
 end
