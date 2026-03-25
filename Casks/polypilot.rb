@@ -9,9 +9,15 @@ cask "polypilot" do
 
   # Requires macOS 14+ (Sonoma) for Mac Catalyst support
   depends_on macos: ">= :sonoma"
-  depends_on cask: "copilot-cli"
 
   app "PolyPilot.app"
+
+  caveats <<~EOS
+    PolyPilot requires the GitHub Copilot CLI (`copilot`) on your PATH.
+    If you don't have it, install with one of:
+      brew install --cask copilot-cli
+      npm install -g @github/copilot
+  EOS
 
   zap trash: [
     "~/.polypilot",
