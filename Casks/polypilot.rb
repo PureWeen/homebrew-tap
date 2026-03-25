@@ -1,6 +1,6 @@
 cask "polypilot" do
-  version "1.0.12"
-  sha256 "b869ce8ee2b8f653bb53fb86636bf37bd65e8086a0fe419e270cbc6d028d6219"
+  version "1.0.13"
+  sha256 "57c480351c421cda917a22f4e23cdf65b6fac9cc50c0c5bf5cff02f2263d6f55"
 
   url "https://github.com/PureWeen/PolyPilot/releases/download/v#{version}/PolyPilot.zip"
   name "PolyPilot"
